@@ -36,8 +36,8 @@ class IOS {
     return AppinioSocialSharePlatform.instance.shareToMessenger(message);
   }
 
-  Future<String> copyToClipBoard(String message) {
-    return AppinioSocialSharePlatform.instance.copyToClipBoard(message);
+  Future<String> copyToClipBoard(String imagePath) {
+    return AppinioSocialSharePlatform.instance.copyToClipBoard(imagePath);
   }
 
   Future<String> shareToFacebook(String hashtag, List<String> filePaths) {
@@ -77,16 +77,14 @@ class IOS {
         attributionURL: attributionURL);
   }
 
-  ///Works only after implementing native code provided here [https://pub.dev/packages/appinio_social_share]
-  Future<String> shareToTiktokPost(
-      String videoFile, String redirectUrl, TiktokFileType tiktokFileType) {
+  Future<String> shareToSystem(String message, String? filePath) {
     return AppinioSocialSharePlatform.instance
-        .shareToTiktokPost(videoFile, redirectUrl, tiktokFileType);
+        .shareToSystemIos("", message, filePath: filePath);
   }
 
-  Future<String> shareToSystem(String message, {List<String>? filePaths}) {
+  Future<String> shareFilesToSystem({List<String>? filePaths}) {
     return AppinioSocialSharePlatform.instance
-        .shareToSystem("", message, filePaths: filePaths);
+        .shareToSystemIosMultifiles("", filePaths: filePaths);
   }
 
   Future<String> shareToSMS(String message) {

@@ -23,9 +23,8 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
   final String sms = "sms";
   final String smsAndroid = "sms_android";
   final String smsAndroidMultiFiles = "sms_android_multifiles";
-  final String tiktokStatus = "tiktok_status";
-  final String tiktokPost = "tiktok_post";
-  final String systemShare = "system_share";
+  final String systemShareIos = "system_share_ios";
+  final String systemShareIosMultiFiles = "system_share_ios_multifiles";
   final String systemShareAndroid = "system_share_android";
   final String systemShareAndroidMultiFiles = "system_share_android_multifiles";
   final String copyToClipboard = "copy_to_clipboard";
@@ -43,33 +42,6 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
   Future<Map<String, bool>> getInstalledApps() async {
     return Map<String, bool>.from(
         (await methodChannel.invokeMethod(installedApps)));
-  }
-
-  @override
-  Future<String> shareToTiktokStatus(List<String> filePaths) async {
-    if (Platform.isIOS) return "Not implemented for iOS";
-    return ((await methodChannel.invokeMethod<String>(
-            tiktokStatus, {"imagePaths": filePaths, "message": ""})) ??
-        "");
-  }
-
-  @override
-  Future<String> shareToTiktokPost(String filePath, String redirectUrl,
-      TiktokFileType tiktokFileType) async {
-    if (Platform.isAndroid) return "Not implemented for android";
-    String? resp;
-    try {
-      resp = (await const MethodChannel('appinio_social_share_tiktok')
-              .invokeMethod<String>(tiktokPost, {
-            "videoFile": filePath,
-            "redirectUrl": redirectUrl,
-            "fileType": tiktokFileType.value
-          })) ??
-          "";
-    } catch (e) {
-      return e.toString();
-    }
-    return resp;
   }
 
   @override
@@ -170,17 +142,25 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
   }
 
   @override
-  Future<String> copyToClipBoard(String message) async {
+  Future<String> copyToClipBoard(String? filePath) async {
     return ((await methodChannel
-            .invokeMethod<String>(copyToClipboard, {"message": message})) ??
+            .invokeMethod<String>(copyToClipboard, {"imagePath": filePath})) ??
         "");
   }
 
   @override
-  Future<String> shareToSystem(String title, String message,
+  Future<String> shareToSystemIos(String title, String message,
+      {String? filePath}) async {
+    return ((await methodChannel.invokeMethod<String>(systemShareIos,
+            {"message": message, "title": title, "imagePath": filePath})) ??
+        "");
+  }
+
+  @override
+  Future<String> shareToSystemIosMultifiles(String title,
       {List<String>? filePaths}) async {
-    return ((await methodChannel.invokeMethod<String>(systemShare,
-            {"message": message, "title": title, "imagePaths": filePaths})) ??
+    return ((await methodChannel.invokeMethod<String>(systemShareIosMultiFiles,
+            {"title": title, "imagePaths": filePaths})) ??
         "");
   }
 

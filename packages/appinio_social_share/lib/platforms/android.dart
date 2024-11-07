@@ -90,11 +90,6 @@ class Android {
         attributionURL: attributionURL);
   }
 
-  ///works only for android
-  Future<String> shareToTiktokStatus(List<String> filePaths) {
-    return AppinioSocialSharePlatform.instance.shareToTiktokStatus(filePaths);
-  }
-
   Future<String> shareToSystem(String title, String message, String? filePath) {
     return AppinioSocialSharePlatform.instance
         .shareToSystemAndroid(title, message, filePath);

@@ -30,7 +30,7 @@ public class ShareUtil{
 
     
     public func getInstalledApps(result: @escaping FlutterResult){
-        let apps = [["instagram","instagram"],["facebook-stories","facebook_stories"],["whatsapp","whatsapp"],["tg","telegram"],["fb-messenger","messenger"],["tiktok","snssdk1233"],["instagram-stories","instagram_stories"],["twitter","twitter"],["sms","message"]]
+        let apps = [["instagram","instagram"],["facebook-stories","facebook_stories"],["whatsapp","whatsapp"],["tg","telegram"],["fb-messenger","messenger"],["instagram-stories","instagram_stories"],["twitter","twitter"],["sms","message"]]
         var output:[String: Bool] = [:]
         for app in apps {
             if(UIApplication.shared.canOpenURL(URL(string:(app[0])+"://")!)){
@@ -250,22 +250,33 @@ public class ShareUtil{
 
     public func shareToSystem(args : [String: Any?],result: @escaping FlutterResult) {
         let text = args[argMessage] as? String
-        let filePaths = args[argImagePaths] as? [String]
+        let filePath = args[argImagePath] as? String
         var data : [Any] = [text!];
-        if filePaths != nil{
-            for filePath in filePaths!{
-                data.append(URL(fileURLWithPath: filePath))
-            }
+        if filePath != nil{
+            data.append(URL(fileURLWithPath: filePath!))
         }
         let activityViewController = UIActivityViewController(activityItems: data, applicationActivities: nil)
         UIApplication.topViewController()?.present(activityViewController, animated: true, completion: nil)
         result(SUCCESS)
     }
+
+    public func shareToSystemFiles(args : [String: Any?],result: @escaping FlutterResult) {
+            let filePaths = args[argImagePaths] as? [String]
+            var data : [Any] = [];
+            if filePaths != nil{
+                for filePath in filePaths!{
+                    data.append(URL(fileURLWithPath: filePath))
+                }
+            }
+            let activityViewController = UIActivityViewController(activityItems: data, applicationActivities: nil)
+            UIApplication.topViewController()?.present(activityViewController, animated: true, completion: nil)
+            result(SUCCESS)
+        }
     
     
     func copyToClipboard(args : [String: Any?],result: @escaping FlutterResult){
-        let message = args[self.argMessage] as? String
-        UIPasteboard.general.string = message!
+        let imagePath = args[self.argImagePath] as? String
+        UIPasteboard.general.string = imagePath!
         result(SUCCESS)
     }
     

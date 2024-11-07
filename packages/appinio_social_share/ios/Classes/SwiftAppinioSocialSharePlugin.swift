@@ -18,7 +18,8 @@ public class SwiftAppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDele
     private let WHATSAPP_IMG_IOS:String = "whatsapp_img_ios";
     private let TWITTER:String = "twitter";
     private let SMS:String = "sms";
-    private let SYSTEM_SHARE:String = "system_share";
+    private let SYSTEM_SHARE:String = "system_share_ios";
+    private let SYSTEM_SHARE:String = "system_share_ios_multifiles";
     private let COPY_TO_CLIPBOARD:String = "copy_to_clipboard";
     private let TELEGRAM:String = "telegram";
     private let INSTALLED_APPS:String = "installed_apps";
@@ -70,6 +71,9 @@ public class SwiftAppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDele
           break
       case SYSTEM_SHARE:
           shareUtil.shareToSystem(args:args!,result: result)
+          break
+      case SYSTEM_SHARE_FILES:
+          shareUtil.shareToSystemFiles(args:args!,result: result)
           break
       case COPY_TO_CLIPBOARD:
           shareUtil.copyToClipboard(args: args!, result: result)

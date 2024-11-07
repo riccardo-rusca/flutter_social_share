@@ -2,7 +2,7 @@
 //  MyActivityItemSource.swift
 //  appinio_social_share
 //
-//  Created by Mujeeb khan on 23.09.22.
+//  Edited by ARiccardo Rusca on 2024-11-07
 //
 
 import Foundation
@@ -37,9 +37,6 @@ class MyActivityItemSource: NSObject, UIActivityItemSource {
             let metadata = LPLinkMetadata()
             metadata.title = title
             metadata.iconProvider = NSItemProvider(object: UIImage(contentsOfFile: filePath)!)
-            //This is a bit ugly, though I could not find other ways to show text content below title.
-            //https://stackoverflow.com/questions/60563773/ios-13-share-sheet-changing-subtitle-item-description
-            //You may need to escape some special characters like "/".
             metadata.originalURL = URL(fileURLWithPath: text)
             return metadata
     }

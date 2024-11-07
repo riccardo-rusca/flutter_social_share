@@ -38,7 +38,6 @@ public class AppinioSocialSharePlugin implements FlutterPlugin, MethodCallHandle
     private final String TWITTER_ANDROID_MULTIFILES = "twitter_android_multifiles";
     private final String SMS_ANDROID = "sms_android";
     private final String SMS_ANDROID_MULTIFILES = "sms_android_multifiles";
-    private final String TIKTOK = "tiktok_status";
     private final String SYSTEM_SHARE_ANDROID = "system_share_android";
     private final String SYSTEM_SHARE_ANDROID_MULTIFILES = "system_share_android_multifiles";
     private final String COPY_TO_CLIPBOARD = "copy_to_clipboard";
@@ -120,13 +119,11 @@ public class AppinioSocialSharePlugin implements FlutterPlugin, MethodCallHandle
             case TWITTER_ANDROID_MULTIFILES:
                 return socialShareUtil.shareToTwitterFiles(imagePaths, activeContext);
             case COPY_TO_CLIPBOARD:
-                return socialShareUtil.copyToClipBoard(message, activeContext);
+                return socialShareUtil.copyToClipBoard(imagePath, activeContext);
             case SYSTEM_SHARE_ANDROID:
                 return socialShareUtil.shareToSystem(title, message, imagePath, title, context);
             case SYSTEM_SHARE_ANDROID_MULTIFILES:
                 return socialShareUtil.shareToSystemFiles(title, imagePaths, title, context);
-            case TIKTOK:
-                return socialShareUtil.shareToTikTok(imagePaths, activeContext);
             case SMS_ANDROID:
                 return socialShareUtil.shareToSMS(message, activeContext, imagePath);
             case SMS_ANDROID_MULTIFILES:
