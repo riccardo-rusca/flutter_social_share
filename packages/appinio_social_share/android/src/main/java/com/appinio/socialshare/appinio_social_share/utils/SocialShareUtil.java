@@ -181,6 +181,7 @@ public class SocialShareUtil {
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setAction(Intent.ACTION_SEND);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (filePath != null) {
                 Uri fileUri = FileProvider.getUriForFile(activity, activity.getApplicationContext().getPackageName() + ".provider", new File(filePath));
                 intent.setType(getMimeTypeOfFile(filePath));
@@ -192,10 +193,10 @@ public class SocialShareUtil {
 
             intent.putExtra(Intent.EXTRA_TEXT, message);
             intent.putExtra(Intent.EXTRA_SUBJECT, title);
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Intent chooserIntent = Intent.createChooser(intent, chooserTitle);
             chooserIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            chooserIntent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             activity.startActivity(chooserIntent);
             return SUCCESS;
         } catch (Exception e) {
