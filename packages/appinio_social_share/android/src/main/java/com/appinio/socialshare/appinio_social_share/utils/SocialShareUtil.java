@@ -147,18 +147,21 @@ public class SocialShareUtil {
 
     public String shareToSystemFiles(String title, ArrayList<String> filePaths, String chooserTitle, Context activity) {
         try {
-            if (filePaths == null || filePaths.isEmpty()) return "No files to share";
             Intent intent = new Intent();
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.setAction(Intent.ACTION_SEND_MULTIPLE);
             ArrayList<Uri> files = new ArrayList<Uri>();
-            for (int i = 0; i < filePaths.size(); i++) {
-                Uri fileUri = FileProvider.getUriForFile(activity, activity.getApplicationContext().getPackageName() + ".provider", new File(filePaths.get(i)));
-                files.add(fileUri);
+            if (filePaths == null || filePaths.isEmpty()) {
+                intent.setType("text/plain");
+            } else {
+                for (int i = 0; i < filePaths.size(); i++) {
+                    Uri fileUri = FileProvider.getUriForFile(activity, activity.getApplicationContext().getPackageName() + ".provider", new File(filePaths.get(i)));
+                    files.add(fileUri);
+                }
+                intent.setType(getMimeTypeOfFile(filePaths.get(0)));
+                intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
             }
-            intent.setType(getMimeTypeOfFile(filePaths.get(0)));
-            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
             intent.putExtra(Intent.EXTRA_SUBJECT, title);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             Intent chooserIntent = Intent.createChooser(intent, chooserTitle);

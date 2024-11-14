@@ -151,7 +151,7 @@ abstract class AppinioSocialSharePlatform extends PlatformInterface {
   }
 
   Future<String> shareToSystemAndroidMultifiles(
-      String title, List<String> filePaths) async {
+      String title, List<String>? filePaths) async {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 }

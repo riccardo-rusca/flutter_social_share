@@ -174,7 +174,7 @@ class MethodChannelAppinioSocialShare extends AppinioSocialSharePlatform {
 
   @override
   Future<String> shareToSystemAndroidMultifiles(
-      String title, List<String> filePaths) async {
+      String title, List<String>? filePaths) async {
     return ((await methodChannel.invokeMethod<String>(
             systemShareAndroidMultiFiles,
             {"title": title, "imagePaths": filePaths})) ??

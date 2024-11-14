@@ -95,7 +95,7 @@ class Android {
         .shareToSystemAndroid(title, message, filePath);
   }
 
-  Future<String> shareFilesToSystem(String title, List<String> filePaths) {
+  Future<String> shareFilesToSystem(String title, List<String>? filePaths) {
     return AppinioSocialSharePlatform.instance
         .shareToSystemAndroidMultifiles(title, filePaths);
   }
