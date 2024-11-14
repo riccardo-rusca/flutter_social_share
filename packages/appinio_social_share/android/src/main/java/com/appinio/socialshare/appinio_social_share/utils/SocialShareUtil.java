@@ -184,6 +184,7 @@ public class SocialShareUtil {
             if (filePath != null) {
                 Uri fileUri = FileProvider.getUriForFile(activity, activity.getApplicationContext().getPackageName() + ".provider", new File(filePath));
                 intent.setType(getMimeTypeOfFile(filePath));
+                intent.setClipData(ClipData.newRawUri("", fileUri));
                 intent.putExtra(Intent.EXTRA_STREAM, fileUri);
             } else {
                 intent.setType("text/plain");
