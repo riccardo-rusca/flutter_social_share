@@ -1,303 +1,95 @@
-```appinio_social_share``` supports sharing files to social media (Facebook, Instagram, Instagram Story, Messenger, Telegram, WhatsApp, Twitter, SMS, System, etc.). If you want to share text, file, image, text with image or text with files then this plugin is all you need.
+# appinio_social_share (fork PinVision)
 
-<br />
+Fork interno di [appinio_social_share](https://pub.dev/packages/appinio_social_share), ridotto a una sola funzione: condividere testo e file tramite il **foglio di condivisione di sistema**.
 
+- iOS: `UIActivityViewController`
+- Android: chooser di sistema (`Intent.createChooser`)
 
-## Top Sharing Features
+Le integrazioni dirette con le app social della libreria originale (Facebook, Instagram, WhatsApp, Telegram, ecc.) sono state rimosse insieme al Facebook SDK, perché l'app PinVision non le usa. Il foglio di sistema permette comunque di condividere verso tutte queste app.
 
-- Facebook Post
-- Facebook Stories
-- Instagram Chat
-- Instgaram Feed
-- Instgaram Reel
-- Instagram Stories
-- Messenger
-- Telegram
-- WhatsApp
-- Twitter
-- SMS
-- System ShareSheet
-- Copy to clipboard
-- Check if these apps are installed
+## Installazione
 
+Nel `pubspec.yaml` dell'app:
 
-## Some Example Previews
-
-#Android 
-
-
-<img src="https://github.com/appinioGmbH/flutter_packages/blob/main/assets/social_share/android.jpg?raw=true">
-
-#iOS
-
-
-<img src="https://github.com/appinioGmbH/flutter_packages/blob/main/assets/social_share/ios.jpg?raw=true">
-
-
-**Simply use AppinioSocialShare class and call the method of which platform you want to share.
-
-## Android
-
-Paste the following attribute in the manifest tag in the AndroidManifest.xml
-
-```xml
-
-<manifest xmlns:tools="http://schemas.android.com/tools">
-</manifest>
+```yaml
+dependencies:
+  appinio_social_share:
+    git:
+      url: https://github.com/riccardo-rusca/flutter_social_share.git
+      path: packages/appinio_social_share
 ```
 
-For example:
+Senza `ref` viene usato il branch `main`. Per aggiornare dopo un push: `flutter pub upgrade appinio_social_share`.
 
-```xml
+## Uso
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="your package...">
-</manifest>
+```dart
+import 'dart:io';
+import 'package:appinio_social_share/appinio_social_share.dart';
+
+final share = AppinioSocialShare();
+
+if (Platform.isIOS) {
+  await share.iOS.shareToSystem(message, file.path, title: title);
+} else {
+  await share.android.shareToSystem(title, message, file.path);
+}
 ```
 
-Add these permissions and queries to your AndroidManifest.xml
+### API
+
+| Piattaforma | Metodo | Note |
+|---|---|---|
+| iOS | `iOS.shareToSystem(String message, String? filePath, {String? title})` | `title` è usato come oggetto dalle app che lo supportano (es. Mail). |
+| iOS | `iOS.shareFilesToSystem({List<String>? filePaths})` | Più file insieme. |
+| Android | `android.shareToSystem(String title, String message, String? filePath)` | `title` è il titolo del chooser e l'oggetto (`EXTRA_SUBJECT`). |
+| Android | `android.shareFilesToSystem(String title, List<String>? filePaths)` | Più file insieme. |
+
+### Valore restituito
+
+Tutti i metodi restituiscono una `String`:
+
+- `"SUCCESS"`: il foglio di condivisione è stato aperto. **Non** significa che l'utente abbia completato la condivisione.
+- iOS, `"ERROR"`: non c'era niente da condividere oppure nessuna schermata da cui mostrare il foglio.
+- Android, qualunque altro valore: il messaggio dell'eccezione nativa (per esempio un file fuori dai percorsi del `FileProvider`).
+
+## Configurazione
+
+### iOS
+
+Non serve nessuna configurazione. La versione minima è iOS 13. Il plugin supporta sia Swift Package Manager (`ios/appinio_social_share/Package.swift`) sia CocoaPods (`ios/appinio_social_share.podspec`).
+
+### Android
+
+Per condividere file l'app deve dichiarare un `FileProvider` con authority **`${applicationId}.provider`**. Il plugin costruisce gli URI con questa authority, quindi il nome è obbligatorio.
+
+`android/app/src/main/AndroidManifest.xml`, dentro `<application>`:
 
 ```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        package="your package...">
-  
-<queries>
-    <!-- Explicit apps you know in advance about: -->
-          
-    <package android:name="com.instagram.android" />
-    <package android:name="com.zhiliaoapp.musically" />
-    <package android:name="com.facebook.katana" />
-    <package android:name="com.facebook.orca" />
-    <package android:name="org.telegram.messenger" />
-    <package android:name="com.whatsapp" />
-    <package android:name="com.twitter.android" />
-  
-    <provider android:authorities="com.facebook.katana.provider.PlatformProvider" /> <!-- allows app to access Facebook app features -->
-    <provider android:authorities="com.facebook.orca.provider.PlatformProvider" /> <!-- allows sharing to Messenger app -->
-</queries>
-
-  <!-- Required only if your app needs to access images or photos
-       that other apps created. -->
-<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-
-  <!-- Required only if your app needs to access videos
-       that other apps created. -->
-<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-
-  <!-- Required only if your app needs to access audio files
-       that other apps created. -->
-<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-          android:maxSdkVersion="29" />
-<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-<uses-permission android:name="android.permission.INTERNET" />
-
-</manifest>
-```
-
-## NOTE: 
-
-MANAGE_EXTERNAL_STORAGE requires additional permissions from google. So do not add it if you are not planning to access external storage.
-Check this for more info. https://support.google.com/googleplay/android-developer/answer/10467955?hl=en
-
-
-Create xml folder and add a provider path file to it (for example: provider_paths_app.xml) in android/app/src/main/res and 
-add the lines below to the created xml file
-
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <external-path
-        name="external_files"
-        path="." />
-</paths>
-```
-
-After created your own file provider and define your own path paste them into this and add to your AndroidManifest.xml
-
-```xml
-
-<provider android:name="androidx.core.content.FileProvider" 
-        android:authorities="${applicationId}.provider"
-    android:exported="false" android:grantUriPermissions="true">
-    <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/[your_custom_fileProvider_file_name]" />
+<provider
+    android:name="androidx.core.content.FileProvider"
+    android:authorities="${applicationId}.provider"
+    android:exported="false"
+    android:grantUriPermissions="true">
+    <meta-data
+        android:name="android.support.FILE_PROVIDER_PATHS"
+        android:resource="@xml/file_paths" />
 </provider>
 ```
 
-### Facebook app register
-
-+ In /android/app/src/main/values folder create a strings.xml file and add your facebook app id and facebook client token.
-+ To get the facebook client token: Open your app on Meta for developer ([link](https://developers.facebook.com)) > Settings > Advanced > Security >
-  Application code
-+ To get the facebook app id follow the Meta link above and go to your app Settings > Basic information > App ID
+`android/app/src/main/res/xml/file_paths.xml` deve coprire la cartella in cui l'app salva i file da condividere. Per esempio:
 
 ```xml
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="facebook_app_id">[facebook_app_id]</string>
-    <string name="facebook_client_token">[facebook_client_token]</string>
-</resources>
+<paths>
+    <cache-path name="cache" path="." />           <!-- getTemporaryDirectory() -->
+    <external-path name="external" path="." />     <!-- getExternalStorageDirectory() -->
+</paths>
 ```
 
-+ Add this inside the application tag in android manifest.
+Se il file non è coperto da nessun percorso, il metodo restituisce il messaggio dell'eccezione di `FileProvider` invece di `"SUCCESS"`.
 
-```xml
-  <provider android:name="com.facebook.FacebookContentProvider" android:authorities="com.facebook.app.FacebookContentProvider[facebook_app_id]"
-         android:exported="true" />
-     <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id" />
-     <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token" />
-     <meta-data android:name="com.facebook.sdk.ApplicationName" android:value="${applicationName}"/>
-     <activity android:name="com.facebook.FacebookActivity" android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation" android:label="${applicationName}" />
-```
+Il MIME type viene ricavato dall'estensione del file (fallback `*/*`). Con più file di tipi diversi si usa `*/*`.
 
+## Esempio
 
-+ After complete the step above add these xml tags to your AndroidManifest.xml
-
-
-## iOS
-
-***Open Xcode and change your deployment target to iOS 11***
-
-Add these lines to your Info.plist file
-
-```xml
-<dict>
-  <key>CFBundleURLTypes</key>
-  <array>
-  <dict>
-      <key>CFBundleURLSchemes</key>
-      <array>
-          <string>fb[your_facebook_app_id]</string>
-      </array>
-  </dict>
-  </array>
-  
-  <key>LSApplicationQueriesSchemes</key>
-  <array>
-  <string>instagram</string>
-  <string>fb</string>
-  <string>fbauth2</string>
-  <string>fbshareextension</string>
-  <string>fbapi</string>
-  <string>facebook-reels</string>
-  <string>facebook-stories</string>
-  <string>fb-messenger-share-api</string>
-  <string>fb-messenger</string>
-  <string>tg</string>
-  <string>whatsapp</string>
-  <string>twitter</string>
-  </array>
-  
-  <key>NSPhotoLibraryUsageDescription</key>
-  <string>$(PRODUCT_NAME) needs permission to access photos and videos on your device</string>
-  <key>NSMicrophoneUsageDescription</key>
-  <string>$(PRODUCT_NAME) does not require access to the microphone.</string>
-  <key>NSCameraUsageDescription</key>
-  <string>$(PRODUCT_NAME) requires access to the camera.</string>
-  <key>NSAppleMusicUsageDescription</key>
-  <string>$(PRODUCT_NAME) requires access to play music</string>
-  
-  <key>FacebookAppID</key>
-  <string>[your_facebook_app_id]</string>
-  <key>FacebookClientToken</key>
-  <string>[your_facebook_client_token]</string>
-  <key>FacebookDisplayName</key>
-  <string>[your_facebook_app_display_name]</string>
-  
-  <key>NSBonjourServices</key>
-  <array>
-  <string>_dartobservatory._tcp</string>
-  </array>
-</dict>
-```
-
-***The facebook app id and facebook client token you can get by complete the steps mentioned on Android config***
-
-Add these lines to the AppDelegate.swift file
-
-```
-import FBSDKCoreKit
-
-// Put these lines in the application function
-FBSDKCoreKit.ApplicationDelegate.shared.application(
-        application,
-        didFinishLaunchingWithOptions: launchOptions
-)
-```
-
-<br />
-
-
-## Usage
-
-```dart
-
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  AppinioSocialShare appinioSocialShare = AppinioSocialShare();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        title: "Share Feature",
-        home: Scaffold(
-          body: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                child: const Text("ShareToWhatsapp"),
-                onPressed: () async {
-                  FilePickerResult? result = await FilePicker.platform
-                      .pickFiles(type: FileType.image, allowMultiple: false);
-                  if (result != null && result.paths.isNotEmpty) {
-                    shareToWhatsApp(
-                        "message", result.paths[0]!);
-                  }
-                },
-              ),
-            ],
-          ),
-        ));
-  }
-
-  shareToWhatsApp(String message, String filePath) async {
-    await appinioSocialShare.android.shareToSMS(message, filePath);
-  }
-}
-
-
-
-```
-
-<br />
-
-
-| Method        | iOS | Android | Parameters                                                                                                                                                                    | Description                                                                                                                                                               
-|:-------------|:-------------:|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| getInstalledApps      |✔️|   ✔️    | -                                                                                                                                                                             | Get a Map of all the apps with a boolean value.                                                                                                                           
-| shareToWhatsapp      |✔️|   ✔️    | String message, {List<String>? filePaths}                                                                                                                                     | Share Image and text to Whatsapp. For Ios only text works.                                                                                                                
-| shareToTelegram      |✔️|   ✔️    | String message, {List<String>? filePaths}                                                                                                                                     | Share Image and text to Telegram. For Ios only text works.                                                                                                                
-| shareToInstagramDirect      |✔️|   ✔️    | String message                                                                                                                                                                | Share text message to Instagram.                                                                                                                                          
-| shareToInstagramFeed      |✔️|   ✔️    | List<String> imagePaths                                                                                                                                                       | Share image to Instagram feed.                                                                                                                                            
-| shareToInstagramReel      |✔️|   ✔️    | List<String> videoPaths                                                                                                                                                       | Share video to Instagram Reel.                                                                                                                                            
-| shareToInstagramStory      |✔️|   ✔️    | String facebookAppId, String stickerImage,{String? backgroundImage,String? backgroundVideo,  String? backgroundTopColor,String? backgroundBottomColor,String? attributionURL} | Share background image, movable sticker, background colors to Instagram Story.                                                                                            
-| shareToFacebook      |✔️|   ✔️    | String message, List<String> filePaths                                                                                                                                        | Share text hashtag and image to Facebook.                                                                                                                                 
-| shareToFacebookStory      |✔️|   ✔️    | String stickerImage,String appId,{String? backgroundImage, String? backgroundVideo, String? backgroundTopColor, String? backgroundBottomColor, String? attributionURL}        | Share background image, movable sticker, background colors to Facebook Story.                                                                                             
-| shareToMessenger      |✔️|   ✔️    | String message                                                                                                                                                                | Share text message to Messenger.                                                                                                                                          | Share video to tiktok.
-| shareToTwitter      |  ✔️   |   ✔️    | String message, {List<String>? filePaths}                                                                                                                                     | Share Image and text to Twitter.                                                                                                                                          
-| shareToSMS      |✔️|   ✔️    | String message, {List<String>? filePaths}                                                                                                                                     | Share Image and text to default sms app.                                                                                                                                  
-| copyToClipBoard      |✔️|   ✔️    | String message                                                                                                                                                                | To Copy text to clipboard.                                                                                                                                                
-| shareToSystem      |✔️|   ✔️    | String title,String message, {List<String>? filePaths}                                                                                                                        | Open default System sheet, to share text and image.                                                                                                                       
-| shareImageToWhatsApp      |✔️|   ❌     | String filePaths                                                                                                                           | Share image to whatsapp                                                                                                                                                   
-
+`example/` contiene un'app minima con due pulsanti: condividi solo testo, e condividi testo più file.

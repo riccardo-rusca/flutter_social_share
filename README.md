@@ -1,6 +1,7 @@
-# Flutter packages
-Flutter packages maintained and used by Riccardo Rusca for PinVision
+# Pacchetti Flutter PinVision
 
+Pacchetti Flutter mantenuti per l'app PinVision.
 
-# Packages list
-- [appinio_social_share](packages/appinio_social_share/)
+## Pacchetti
+
+- [appinio_social_share](packages/appinio_social_share/): fork di appinio_social_share ridotto alla condivisione di testo e file tramite il foglio di sistema di iOS e Android.

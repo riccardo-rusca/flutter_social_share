@@ -1,3 +1,14 @@
+## [0.5.0] - 2026-11-21
+* Libreria ridotta alla sola condivisione di sistema (`shareToSystem`, `shareFilesToSystem`), l'unica usata dall'app PinVision.
+* Rimosse tutte le integrazioni social (Facebook, Instagram, WhatsApp, Telegram, Twitter, Messenger, SMS, copia negli appunti) e `getInstalledApps`.
+* Rimosso il Facebook SDK da iOS e Android.
+* iOS: supporto a Swift Package Manager, versione minima iOS 13.
+* iOS: risolto il crash su iPad (popover senza ancora) e il titolo ora viene passato come oggetto (`title` opzionale in `shareToSystem`).
+* iOS: restituisce `ERROR` se non c'è nulla da condividere o nessuna schermata da cui mostrare il foglio.
+* Android: il MIME type viene ricavato dall'estensione con fallback `*/*`; prima poteva essere `null`.
+* Android: un errore con messaggio `null` non manda più in crash il logging.
+* Android: `androidx.core` dichiarato esplicitamente (prima arrivava tramite il Facebook SDK), `compileSdk` 34, `minSdk` 21.
+
 ## [0.4.0] - unreleased
 * Fix for sharing to system sheet.
 

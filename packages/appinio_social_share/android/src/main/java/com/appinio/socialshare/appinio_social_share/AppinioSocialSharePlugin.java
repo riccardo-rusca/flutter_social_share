@@ -1,136 +1,51 @@
 package com.appinio.socialshare.appinio_social_share;
 
-import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 
-import com.appinio.socialshare.appinio_social_share.utils.SocialShareUtil;
-
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
+import java.util.Locale;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
-import io.flutter.embedding.engine.plugins.activity.ActivityAware;
-import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 /**
- * AppinioSocialSharePlugin
+ * Plugin Flutter che apre il chooser di condivisione di sistema.
+ *
+ * <p>I nomi dei metodi e delle chiavi degli argomenti devono restare allineati con
+ * {@code lib/appinio_social_share_method_channel.dart}.
+ *
+ * <p>I file vengono esposti tramite il {@link FileProvider} dell'app ospite, che deve essere
+ * dichiarato con authority {@code <applicationId>.provider}.
  */
-public class AppinioSocialSharePlugin implements FlutterPlugin, MethodCallHandler, ActivityAware {
+public class AppinioSocialSharePlugin implements FlutterPlugin, MethodCallHandler {
 
-    private final String INSTALLED_APPS = "installed_apps";
-    private final String INSTAGRAM_DIRECT = "instagram_direct";
-    private final String INSTAGRAM_FEED = "instagram_post";
-    private final String INSTAGRAM_FEED_FILES = "instagram_post_files";
-    private final String INSTAGRAM_STORIES = "instagram_stories";
-    private final String FACEBOOK = "facebook";
-    private final String MESSENGER = "messenger";
-    private final String FACEBOOK_STORIES = "facebook_stories";
-    private final String WHATSAPP_ANDROID = "whatsapp_android";
-    private final String WHATSAPP_ANDROID_MULTIFILES = "whatsapp_android_multifiles";
-    private final String TWITTER_ANDROID = "twitter_android";
-    private final String TWITTER_ANDROID_MULTIFILES = "twitter_android_multifiles";
-    private final String SMS_ANDROID = "sms_android";
-    private final String SMS_ANDROID_MULTIFILES = "sms_android_multifiles";
-    private final String SYSTEM_SHARE_ANDROID = "system_share_android";
-    private final String SYSTEM_SHARE_ANDROID_MULTIFILES = "system_share_android_multifiles";
-    private final String COPY_TO_CLIPBOARD = "copy_to_clipboard";
-    private final String TELEGRAM_ANDROID = "telegram_android";
-    private final String TELEGRAM_ANDROID_MULTIFILES = "telegram_android_multifiles";
+    private static final String TAG = "AppinioSocialShare";
+    private static final String SUCCESS = "SUCCESS";
+    private static final String SYSTEM_SHARE = "system_share_android";
+    private static final String SYSTEM_SHARE_MULTIFILES = "system_share_android_multifiles";
 
-
-    private SocialShareUtil socialShareUtil;
     private MethodChannel channel;
-    private Activity activity;
-    private Context activeContext;
     private Context context;
 
     @Override
-    public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-        context = flutterPluginBinding.getApplicationContext();
-        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "appinio_social_share");
+    public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
+        context = binding.getApplicationContext();
+        channel = new MethodChannel(binding.getBinaryMessenger(), "appinio_social_share");
         channel.setMethodCallHandler(this);
-        socialShareUtil = new SocialShareUtil();
-    }
-
-    @Override
-    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
-        try {
-            String response = decideApp(call, result);
-            if (response != null) {
-                result.success(response);
-            }
-        } catch (Exception e) {
-            Log.d("error", e.getLocalizedMessage());
-            result.success(e.getLocalizedMessage());
-        }
-
-    }
-
-    public String decideApp(@NonNull MethodCall call, @NonNull Result result) {
-        activeContext = (activity != null) ? activity.getApplicationContext() : context;
-        String title = call.argument("title");
-        String message = call.argument("message");
-        String appId = call.argument("appId");
-        ArrayList<String> imagePaths = call.argument("imagePaths");
-        String stickerImage = call.argument("stickerImage");
-        String imagePath = call.argument("imagePath");
-        String attributionURL = call.argument("attributionURL");
-        String backgroundImage = call.argument("backgroundImage");
-        String backgroundTopColor = call.argument("backgroundTopColor");
-        String backgroundBottomColor = call.argument("backgroundBottomColor");
-        switch (call.method) {
-            case INSTALLED_APPS:
-                Map<String, Boolean> response = socialShareUtil.getInstalledApps(activeContext);
-                result.success(response);
-                return null;
-            case INSTAGRAM_DIRECT:
-                return socialShareUtil.shareToInstagramDirect(message, activeContext);
-            case INSTAGRAM_FEED:
-                return socialShareUtil.shareToInstagramFeed(imagePath, message, activeContext, message);
-            case INSTAGRAM_FEED_FILES:
-                return socialShareUtil.shareToInstagramFeedFiles(imagePaths, activeContext,message);
-            case INSTAGRAM_STORIES:
-                return socialShareUtil.shareToInstagramStory(appId, stickerImage, backgroundImage, backgroundTopColor, backgroundBottomColor, attributionURL, activeContext);
-            case FACEBOOK_STORIES:
-                return socialShareUtil.shareToFaceBookStory(appId, stickerImage, backgroundImage, backgroundTopColor, backgroundBottomColor, attributionURL, activeContext);
-            case MESSENGER:
-                return socialShareUtil.shareToMessenger(message, activeContext);
-            case FACEBOOK:
-                if (activity == null) return SocialShareUtil.UNKNOWN_ERROR;
-                socialShareUtil.shareToFacebook(imagePaths, message, activity, result);
-                return null;
-            case WHATSAPP_ANDROID:
-                return socialShareUtil.shareToWhatsApp(imagePath, message, activeContext);
-            case WHATSAPP_ANDROID_MULTIFILES:
-                return socialShareUtil.shareToWhatsAppFiles(imagePaths, activeContext);
-            case TELEGRAM_ANDROID:
-                return socialShareUtil.shareToTelegram(imagePath, activeContext, message);
-            case TELEGRAM_ANDROID_MULTIFILES:
-                return socialShareUtil.shareToTelegramFiles(imagePaths, activeContext);
-            case TWITTER_ANDROID:
-                return socialShareUtil.shareToTwitter(imagePath, activeContext, message);
-            case TWITTER_ANDROID_MULTIFILES:
-                return socialShareUtil.shareToTwitterFiles(imagePaths, activeContext);
-            case COPY_TO_CLIPBOARD:
-                return socialShareUtil.copyToClipBoard(imagePath, activeContext);
-            case SYSTEM_SHARE_ANDROID:
-                return socialShareUtil.shareToSystem(title, message, imagePath, title, context);
-            case SYSTEM_SHARE_ANDROID_MULTIFILES:
-                return socialShareUtil.shareToSystemFiles(title, imagePaths, title, context);
-            case SMS_ANDROID:
-                return socialShareUtil.shareToSMS(message, activeContext, imagePath);
-            case SMS_ANDROID_MULTIFILES:
-                return socialShareUtil.shareToSMSFiles(activeContext, imagePaths);
-            default:
-                return null;
-        }
     }
 
     @Override
@@ -139,25 +54,96 @@ public class AppinioSocialSharePlugin implements FlutterPlugin, MethodCallHandle
     }
 
     @Override
-    public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-
+    public void onMethodCall(@NonNull MethodCall call, @NonNull Result result) {
+        String title = call.argument("title");
+        try {
+            switch (call.method) {
+                case SYSTEM_SHARE:
+                    result.success(shareToSystem(title, call.argument("message"), call.argument("imagePath")));
+                    break;
+                case SYSTEM_SHARE_MULTIFILES:
+                    result.success(shareFilesToSystem(title, call.argument("imagePaths")));
+                    break;
+                default:
+                    result.notImplemented();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Condivisione non riuscita", e);
+            String message = e.getLocalizedMessage();
+            result.success(message != null ? message : e.toString());
+        }
     }
 
-    @Override
-    public void onDetachedFromActivityForConfigChanges() {
-        activity = null;
-
+    private String shareToSystem(@Nullable String title, @Nullable String message, @Nullable String filePath) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        if (filePath != null) {
+            Uri uri = uriForFile(filePath);
+            intent.setType(mimeTypeOf(filePath));
+            intent.putExtra(Intent.EXTRA_STREAM, uri);
+            // Con la ClipData il chooser mostra l'anteprima e concede i permessi di lettura.
+            intent.setClipData(ClipData.newRawUri("", uri));
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } else {
+            intent.setType("text/plain");
+        }
+        intent.putExtra(Intent.EXTRA_TEXT, message);
+        intent.putExtra(Intent.EXTRA_SUBJECT, title);
+        startChooser(intent, title);
+        return SUCCESS;
     }
 
-    @Override
-    public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {
-        activity = binding.getActivity();
-
+    private String shareFilesToSystem(@Nullable String title, @Nullable List<String> filePaths) {
+        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        if (filePaths == null || filePaths.isEmpty()) {
+            intent.setType("text/plain");
+        } else {
+            ArrayList<Uri> uris = new ArrayList<>();
+            ClipData clipData = null;
+            for (String filePath : filePaths) {
+                Uri uri = uriForFile(filePath);
+                uris.add(uri);
+                if (clipData == null) {
+                    clipData = ClipData.newRawUri("", uri);
+                } else {
+                    clipData.addItem(new ClipData.Item(uri));
+                }
+            }
+            intent.setType(commonMimeTypeOf(filePaths));
+            intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            intent.setClipData(clipData);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+        intent.putExtra(Intent.EXTRA_SUBJECT, title);
+        startChooser(intent, title);
+        return SUCCESS;
     }
 
-    @Override
-    public void onDetachedFromActivity() {
-        activity = null;
+    /** Il context è quello dell'applicazione, quindi serve FLAG_ACTIVITY_NEW_TASK. */
+    private void startChooser(Intent intent, @Nullable String title) {
+        Intent chooser = Intent.createChooser(intent, title);
+        chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(chooser);
+    }
+
+    private Uri uriForFile(String filePath) {
+        return FileProvider.getUriForFile(context, context.getPackageName() + ".provider", new File(filePath));
+    }
+
+    private static String mimeTypeOf(String filePath) {
+        int dot = filePath.lastIndexOf('.');
+        String extension = dot >= 0 ? filePath.substring(dot + 1).toLowerCase(Locale.ROOT) : "";
+        String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        return mimeType != null ? mimeType : "*/*";
+    }
+
+    /** Il tipo comune a tutti i file, oppure {@code *}{@code /*} se sono di tipi diversi. */
+    private static String commonMimeTypeOf(List<String> filePaths) {
+        String mimeType = mimeTypeOf(filePaths.get(0));
+        for (String filePath : filePaths) {
+            if (!mimeType.equals(mimeTypeOf(filePath))) {
+                return "*/*";
+            }
+        }
+        return mimeType;
     }
 }

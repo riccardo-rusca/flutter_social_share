@@ -27,7 +27,7 @@ android {
         namespace 'com.appinio.socialshare.appinio_social_share'
     }
 
-    compileSdkVersion 31
+    compileSdkVersion 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -35,10 +35,11 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
     }
 }
 
 dependencies {
-    implementation 'com.facebook.android:facebook-share:17.0.0'
+    // FileProvider
+    implementation 'androidx.core:core:1.13.1'
 }

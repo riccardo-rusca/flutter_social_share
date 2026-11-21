@@ -1,6 +1,6 @@
 name: appinio_social_share
-description: Supports sharing text, images, files and text with image to social media (Facebook, Instagram, Instagram Story, Messenger, Telegram, WhatsApp, Twitter, SMS, System, etc.).
-version: 0.4.5
+description: Fork PinVision di appinio_social_share, ridotto alla condivisione di testo e file tramite il foglio di sistema di iOS e Android.
+version: 0.5.0
 homepage: https://github.com/riccardo-rusca/flutter_social_share.git
 repository: https://github.com/riccardo-rusca/flutter_social_share.git
 

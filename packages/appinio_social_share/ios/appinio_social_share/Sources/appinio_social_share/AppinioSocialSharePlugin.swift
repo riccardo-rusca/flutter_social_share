@@ -1,112 +1,107 @@
 import Flutter
 import UIKit
-import FBSDKCoreKit
-import FBSDKShareKit
-import Photos
 
+/// Plugin Flutter che mostra il foglio di condivisione di sistema
+/// (`UIActivityViewController`).
+///
+/// I nomi dei metodi e delle chiavi degli argomenti devono restare allineati
+/// con `lib/appinio_social_share_method_channel.dart`.
+public class AppinioSocialSharePlugin: NSObject, FlutterPlugin {
+    private static let success = "SUCCESS"
+    private static let error = "ERROR"
 
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "appinio_social_share", binaryMessenger: registrar.messenger())
+        registrar.addMethodCallDelegate(AppinioSocialSharePlugin(), channel: channel)
+    }
 
-public class AppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDelegate {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        let args = call.arguments as? [String: Any] ?? [:]
 
-    private let INSTAGRAM_DIRECT:String = "instagram_direct";
-    private let INSTAGRAM_STORIES:String = "instagram_stories";
-    private let INSTAGRAM_POST:String = "instagram_post";
-    private let FACEBOOK:String = "facebook";
-    private let FACEBOOK_STORIES = "facebook_stories";
-    private let MESSENGER = "messenger";
-    private let WHATSAPP:String = "whatsapp";
-    private let WHATSAPP_IMG_IOS:String = "whatsapp_img_ios";
-    private let TWITTER:String = "twitter";
-    private let SMS:String = "sms";
-    private let SYSTEM_SHARE:String = "system_share_ios";
-    private let SYSTEM_SHARE_FILES:String = "system_share_ios_multifiles";
-    private let COPY_TO_CLIPBOARD:String = "copy_to_clipboard";
-    private let TELEGRAM:String = "telegram";
-    private let INSTALLED_APPS:String = "installed_apps";
+        switch call.method {
+        case "system_share_ios":
+            var items: [Any] = []
+            if let message = args["message"] as? String, !message.isEmpty {
+                items.append(TextItemSource(text: message, subject: args["title"] as? String))
+            }
+            if let filePath = args["imagePath"] as? String {
+                items.append(URL(fileURLWithPath: filePath))
+            }
+            result(presentShareSheet(items: items))
 
+        case "system_share_ios_multifiles":
+            let filePaths = args["imagePaths"] as? [String] ?? []
+            result(presentShareSheet(items: filePaths.map { URL(fileURLWithPath: $0) }))
 
-    var shareUtil = ShareUtil()
-    var flutterResult: FlutterResult!
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
 
+    /// Presenta il foglio di condivisione sopra la schermata visibile.
+    private func presentShareSheet(items: [Any]) -> String {
+        guard !items.isEmpty, let presenter = Self.topViewController() else {
+            return Self.error
+        }
 
-    
-  public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "appinio_social_share", binaryMessenger: registrar.messenger())
-    let instance = AppinioSocialSharePlugin()
-    registrar.addMethodCallDelegate(instance, channel: channel)
-  }
+        let controller = UIActivityViewController(activityItems: items, applicationActivities: nil)
 
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-      do {
-      flutterResult = result
-      let args = call.arguments as? [String: Any?]
+        // Su iPad il foglio è un popover e senza un'ancora l'app va in crash.
+        if let popover = controller.popoverPresentationController {
+            let bounds = presenter.view.bounds
+            popover.sourceView = presenter.view
+            popover.sourceRect = CGRect(x: bounds.midX, y: bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
 
-      switch (call.method) {
-      case INSTALLED_APPS:
-          shareUtil.getInstalledApps(result: result)
-          break
-      case INSTAGRAM_DIRECT:
-          shareUtil.shareToInstagramDirect(args:args!,result: result)
-          break
-      case INSTAGRAM_POST:
-          shareUtil.shareToInstagramFeed(args:args!,result: result)
-          break
-      case INSTAGRAM_STORIES:
-          shareUtil.shareToInstagramStory(args:args!,result:result)
-          break
-      case FACEBOOK_STORIES:
-          shareUtil.shareToFacebookStory(args:args!,result:result)
-          break
-      case WHATSAPP_IMG_IOS:
-          shareUtil.shareImageToWhatsApp(args:args!, result:result,delegate: self)
-          break
-      case WHATSAPP:
-          shareUtil.shareToWhatsApp(args:args!, result:result)
-          break
-      case TWITTER:
-          shareUtil.shareToTwitter(args:args!,result:result)
-          break
-      case SMS:
-          shareUtil.shareToSms(args: args!, result: result)
-          break
-      case SYSTEM_SHARE:
-          shareUtil.shareToSystem(args:args!,result: result)
-          break
-      case SYSTEM_SHARE_FILES:
-          shareUtil.shareToSystemFiles(args:args!,result: result)
-          break
-      case COPY_TO_CLIPBOARD:
-          shareUtil.copyToClipboard(args: args!, result: result)
-          break
-      case FACEBOOK:
-          shareUtil.shareToFacebookPost(args:args!, result: result,delegate: self)
-          break
-      case TELEGRAM:
-          shareUtil.shareToTelegram(args:args!, result:result)
-          break
-      case MESSENGER:
-          shareUtil.shareToMessenger(args: args!, result: result)
-          break
-      default:
-          result(shareUtil.ERROR)
-      }
-      } catch {
-          result(shareUtil.ERROR)
-      }
-  }
-    
-    public func sharer(_ sharer: Sharing, didCompleteWithResults results: [String : Any]) {
-        flutterResult(shareUtil.SUCCESS)
-     }
-     
-     public func sharer(_ sharer: Sharing, didFailWithError error: Error) {
-         flutterResult(shareUtil.ERROR)
-     }
-     
-     public func sharerDidCancel(_ sharer: Sharing) {
-         flutterResult(shareUtil.ERROR)
-     }
-    
-    
-     
+        presenter.present(controller, animated: true)
+        return Self.success
+    }
+
+    private static func topViewController() -> UIViewController? {
+        let keyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        return topViewController(from: keyWindow?.rootViewController)
+    }
+
+    private static func topViewController(from controller: UIViewController?) -> UIViewController? {
+        if let navigation = controller as? UINavigationController {
+            return topViewController(from: navigation.visibleViewController)
+        }
+        if let tab = controller as? UITabBarController, let selected = tab.selectedViewController {
+            return topViewController(from: selected)
+        }
+        if let presented = controller?.presentedViewController {
+            return topViewController(from: presented)
+        }
+        return controller
+    }
+}
+
+/// Testo da condividere con un oggetto opzionale, usato per esempio da Mail.
+final class TextItemSource: NSObject, UIActivityItemSource {
+    private let text: String
+    private let subject: String?
+
+    init(text: String, subject: String?) {
+        self.text = text
+        self.subject = subject
+        super.init()
+    }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        text
+    }
+
+    func activityViewController(_ activityViewController: UIActivityViewController,
+                                itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+        text
+    }
+
+    func activityViewController(_ activityViewController: UIActivityViewController,
+                                subjectForActivityType activityType: UIActivity.ActivityType?) -> String {
+        subject ?? ""
+    }
 }
