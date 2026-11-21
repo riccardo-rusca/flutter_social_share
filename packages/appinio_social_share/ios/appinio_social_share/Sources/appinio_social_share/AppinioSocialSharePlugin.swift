@@ -6,7 +6,7 @@ import Photos
 
 
 
-public class SwiftAppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDelegate {
+public class AppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDelegate {
 
     private let INSTAGRAM_DIRECT:String = "instagram_direct";
     private let INSTAGRAM_STORIES:String = "instagram_stories";
@@ -32,7 +32,7 @@ public class SwiftAppinioSocialSharePlugin: NSObject, FlutterPlugin, SharingDele
     
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "appinio_social_share", binaryMessenger: registrar.messenger())
-    let instance = SwiftAppinioSocialSharePlugin()
+    let instance = AppinioSocialSharePlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
 
